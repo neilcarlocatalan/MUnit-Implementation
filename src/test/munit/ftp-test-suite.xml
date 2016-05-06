@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting" xmlns:ftpserver="http://www.mulesoft.org/schema/mule/ftpserver"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:core="http://www.mulesoft.org/schema/mule/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ftpserver http://www.mulesoft.org/schema/mule/ftpserver/current/mule-ftpserver.xsd
+http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd">
+    
+    <munit:config mock-inbounds="false" mock-connectors="false" doc:name="MUnit configuration"/>   
+
+	<ftpserver:config port="${ftp.port}" name="ftpServer" doc:name="FTP Server"/>   
+    
+    <spring:beans>
+    	<spring:import resource="classpath:globalconfig.xml"/>
+        <spring:import resource="classpath:ftp.xml"/>
+    </spring:beans>
+    
+    <munit:before-suite name="ftp-test-suiteBefore_Suite" description="MUnit Test">
+        <scripting:component doc:name="Create sample dir and files on mock local FTP Server">
+            <scripting:script engine="Groovy" file="generateDirAndFile.groovy">
+                <property key="inDir" value="${ftp.path.inbound}"/>
+                <property key="outDir" value="${ftp.path.outbound}"/>
+                <property key="filePattern" value="${ftp.pattern}"/>
+            </scripting:script>
+        </scripting:component>
+        <ftpserver:start-server config-ref="ftpServer" doc:name="Start Mock Local FTP Server"/>
+    </munit:before-suite>
+    <munit:test name="ftp-test-Inbound-suiteTest" description="MUnit Test">
+        <expression-component doc:name="Wait 5 seconds for file polling and reading from FTP Server to finish"><![CDATA[Thread.sleep(5000);]]></expression-component>
+    </munit:test>
+
+    <munit:test name="ftp-test-Outbound-suiteTest" description="Test">
+        <munit:set payload="#[&quot;This is a sample outbound message&quot;]" doc:name="Set Message"/>
+        <flow-ref name="ftpOutboundFlow" doc:name="ftpOutboundFlow"/>
+        <!-- <flow-ref name="ftpOutboundFlow" doc:name="ftpOutboundFlow"/> -->
+    </munit:test>
+    
+    <munit:after-suite name="ftp-test-suiteAfter_Suite" description="Ater suite actions">
+        <ftpserver:stop-server config-ref="ftpServer" doc:name="Stop Mock Local FTP Server"/>
+        <scripting:component doc:name="Delete sample dir and files on mock local FTP Server">
+            <scripting:script engine="Groovy" file="deleteDirAndFile.groovy">
+                <property key="inDir" value="${ftp.path.inbound}"/>
+                <property key="outDir" value="${ftp.path.outbound}"/>
+                <property key="filePattern" value="${ftp.pattern}"/>
+            </scripting:script>
+        </scripting:component>
+    </munit:after-suite>
+
+</mule>

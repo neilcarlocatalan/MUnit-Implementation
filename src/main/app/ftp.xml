@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:ftp="http://www.mulesoft.org/schema/mule/ee/ftp"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/ee/ftp http://www.mulesoft.org/schema/mule/ee/ftp/current/mule-ftp-ee.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+    <flow name="ftpInboundFlow" >
+        <ftp:inbound-endpoint host="${ftp.host}" port="${ftp.port}" path="${ftp.path.inbound}" user="${ftp.user}" password="${ftp.password}" responseTimeout="10000" doc:name="FTP_Listener">
+        </ftp:inbound-endpoint>
+        <logger message="#[&quot;PRINT FTP INBOUND PAYLOAD:  &quot;+payload]" level="INFO" doc:name="Logger"/>
+    </flow>
+
+    <flow name="ftpOutboundFlow" >
+        <ftp:outbound-endpoint outputPattern="${ftp.pattern}" responseTimeout="10000" doc:name="FTP_Sender" host="${ftp.host}" password="${ftp.password}" path="${ftp.path.outbound}" port="${ftp.port}" user="${ftp.user}"/>
+        <logger message="#[&quot;PRINT FTP OUTBOUND PAYLOAD:  &quot;+payload]" level="INFO" doc:name="Logger"/>
+    </flow>
+
+</mule>

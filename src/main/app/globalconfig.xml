@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" 
+	xmlns:vm="http://www.mulesoft.org/schema/mule/vm" 
+	xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns="http://www.mulesoft.org/schema/mule/core" 
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-current.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd">
+
+	<context:property-placeholder location="mule.${env}.properties"/>
+	
+	<spring:beans>
+		<spring:bean id="jdbcDataSource" class="org.enhydra.jdbc.standard.StandardDataSource" 
+		destroy-method="shutdown" name="jdbcDataSourceBean">
+		    <spring:property name="driverName" value="${db.driver}"/>
+		    <spring:property name="url" value="${db.url}"/>
+		    <spring:property name="user" value="${db.user}"/>
+		    <spring:property name="password" value="${db.password}"/>
+		</spring:bean>
+		
+		<!--
+		ADDITIONAL CONFIGURATION FOR THE EMBEDDED ACTIVEMQ INSTANCE (USE IF NEEDED)
+		ADD THE FOLLOWING NAMESPACE WHEN ADDING BELOW ADDITIONAL CONFIG.:
+		xmlns:amq="http://activemq.apache.org/schema/core"
+		xsi:schemaLocation="http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core.xsd"
+		-->
+		
+		<!-- 
+		<amq:broker id="amq-broker"
+            useJmx="false"
+            persistent="false"
+            restartAllowed="false"
+            useShutdownHook="true"
+            startAsync="true">
+            <amq:destinationPolicy>
+                <amq:policyMap>
+                    <amq:policyEntries>
+                        <amq:policyEntry queue=">" producerFlowControl="true" memoryLimit="1mb">
+                            <amq:deadLetterStrategy>
+                                <amq:individualDeadLetterStrategy
+                                    queuePrefix="DLQ." useQueueForQueueMessages="true" />
+                            </amq:deadLetterStrategy>
+                        </amq:policyEntry>
+                    </amq:policyEntries>
+                </amq:policyMap>
+            </amq:destinationPolicy>
+            <amq:transportConnectors>
+                <amq:transportConnector uri="vm://localhost"/>
+            </amq:transportConnectors>
+        </amq:broker>
+    
+        <spring:bean name="amqRedeliveryPolicy" class="org.apache.activemq.RedeliveryPolicy">
+            <spring:property name="maximumRedeliveries" value="-1"/>
+            <spring:property name="initialRedeliveryDelay" value="500"/>
+            <spring:property name="useExponentialBackOff" value="false"/>
+            <spring:property name="backOffMultiplier" value="5"/>
+            <spring:property name="maximumRedeliveryDelay" value="-1"/>
+        </spring:bean>
+        
+        <spring:bean name="amqConnectionFactory"
+            class="org.apache.activemq.ActiveMQConnectionFactory"
+            depends-on="amq-broker">
+            <spring:property name="brokerURL" value="${jms.borker.url}"/>
+        </spring:bean> 
+        -->
+        
+        <!-- WILL START EMBEDDED ACTIVEMQ INSTANCE -->
+        <spring:bean name="amqConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+            <spring:property name="brokerURL" value="${jms.borker.url}"/>
+        </spring:bean>
+    </spring:beans>
+    
+    <db:generic-config name="Generic_Database_Configuration" dataSource-ref="jdbcDataSource" doc:name="Generic Database Configuration"/>
+    
+    <jms:connector name="JMS_Connector_Configuration" 
+    connectionFactory-ref="amqConnectionFactory" specification="1.1" doc:name="JMS" validateConnections="true" maxRedelivery="-1"/>
+    
+    <http:request-config name="HTTP_Request_Configuration" host="${http.host}" port="${http.port}" 
+    basePath="/" doc:name="HTTP Request Configuration"/>
+</mule>

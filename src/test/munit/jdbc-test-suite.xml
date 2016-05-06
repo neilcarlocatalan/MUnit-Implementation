@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:mock="http://www.mulesoft.org/schema/mule/mock" xmlns:dbserver="http://www.mulesoft.org/schema/mule/dbserver"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:core="http://www.mulesoft.org/schema/mule/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/dbserver http://www.mulesoft.org/schema/mule/dbserver/current/mule-dbserver.xsd
+http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/mock http://www.mulesoft.org/schema/mule/mock/current/mule-mock.xsd">
+
+    <munit:config mock-inbounds="true" mock-connectors="false" doc:name="MUnit configuration"/>           
+
+	<dbserver:config  name="DB_Server" database="inMemorySampleDB" sqlFile="DB_Structure.sql" doc:name="DB Server"/>
+	
+    <spring:beans>
+        <spring:import resource="classpath:globalconfig.xml"/>
+        <spring:import resource="classpath:jdbc.xml"/>
+    </spring:beans>
+    
+    <munit:before-suite name="before.suite" description="Starting DB server">
+	  <dbserver:start-db-server config-ref="DB_Server" doc:name="DB Server"/>
+	</munit:before-suite>
+    
+    <munit:test name="db-test-suite-case1Test" description="Test">
+        <munit:set payload="#[]" doc:name="Create a Variable">
+            <munit:invocation-properties>
+                <munit:invocation-property key="jobid" value="1"/>
+            </munit:invocation-properties>
+        </munit:set>
+        <flow-ref name="testDbFlow" doc:name="Flow-ref to testDbFlow"/>
+    </munit:test>
+    <munit:test name="db-test-suite-case2Test" description="MUnit Test">
+        <dbserver:execute config-ref="DB_Server" sql="INSERT INTO jobtitlelookup (jobtitleid) VALUES (2)" doc:name="DB Server"/>
+        <munit:set payload="#[]" doc:name="Create a Variable">
+            <munit:invocation-properties>
+                <munit:invocation-property key="jobid" value="2"/>
+            </munit:invocation-properties>
+        </munit:set>
+        <flow-ref name="testDbFlow" doc:name="Flow-ref to testDbFlow"/>
+    </munit:test>
+    
+    <munit:after-suite name="after.suite" description="Stopping DB server">
+	  <dbserver:stop-db-server config-ref="DB_Server" doc:name="DB Server"/>
+	</munit:after-suite>
+</mule>
