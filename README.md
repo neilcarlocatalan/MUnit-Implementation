@@ -2,7 +2,7 @@
 
 ### What is this repository for? ###
 
-This is a XML based simple implementation of MUnit (Mule Testing Framework). It has 4 basic Mule flow example with the corresponding MUnit Test Suite. The implementation targets to use MUnit on the following basic connectors:
+This is a simple XML based implementation of MUnit (Mule Testing Framework). It has 4 basic Mule flow example with the corresponding MUnit Test Suite. The implementation targets to use MUnit on the following basic connectors:
 
 *  JDBC (Outbound using OOTB MUnit's Mock Embedded DB Server)
  
