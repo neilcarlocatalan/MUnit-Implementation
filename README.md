@@ -25,22 +25,16 @@ Anypoint Studio 5.4.3
 * If you want to run the test only, execute this command:
 
 ```
-#!Maven
-
 mvn clean test
 ```
 
 * If you want to run the application and package without testing, execute this command:
 
 ```
-#!Maven
-
 mvn clean package -DskipTests
 ```
  or 
 ```
-#!Maven
-
 mvn clean package -DskipMunitTests
 ```
 
